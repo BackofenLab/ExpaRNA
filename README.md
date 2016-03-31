@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/BackofenLab/ExpaRNA.svg?branch=master)](https://travis-ci.org/BackofenLab/ExpaRNA)
+
 # ExpaRNA
 Pairwise comparsion of RNAs based on exact sequence-structure matches
 
