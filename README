@@ -1,0 +1,24 @@
+ExpaRNA: Pairwise comparsion of RNAs based on exact sequence-structure matches
+
+Copyright Steffen Heyne, 2008
+
+The program finds the longest common subsequence of exact pattern matches (LCS-EPM).
+This is the best colinear arrangement of common substructures common to two RNAs.
+
+The Complexity of the algorithm is O( n^2 m^2 ) time and O (nm) space for two RNAs 
+of lengths n and m.
+
+
+Usage Example:
+==============
+
+ExpaRNA -L Examples/HCVirus_IRES_RNAs.fa
+
+
+Notes
+=====
+
+-L 	...	Starts LCS-EPM algorithm for Input
+
+See "ExpaRNA -h" for all options!
+
