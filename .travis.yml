@@ -6,11 +6,27 @@ os:
 
 compiler:
   - gcc
+
+before_install:
+    - wget http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh
+    - chmod +x miniconda.sh
+    - "./miniconda.sh -b"
+    - export PATH=/home/travis/miniconda2/bin:$PATH
+    - conda update --yes conda
+    - conda install --yes viennarna -c conda-forge -c bioconda
+    - export CONDA_PATH=/home/travis/miniconda2/
+    - export CONDA_LIB_PATH=/home/travis/miniconda2/lib
+    - ls $CONDA_LIB_PATH
+    - ls $CONDA_PATH/include
+    - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$CONDA_LIB_PATH
   
 script:
- # download and compile ViennaRNA dependency
- - wget https://depot.galaxyproject.org/software/vienna_rna/vienna_rna_1.8_src_all.tar.gz
- - tar xvfz vienna_rna_1.8_src_all.tar.gz
- - cd ViennaRNA-1.8.5 && ./configure --prefix=$HOME/vienna --without-perl && make && make install
- - cd $TRAVIS_BUILD_DIR && ./configure --with-RNA=$HOME/vienna --prefix=$HOME/ExpaRNA && make && make install
- - $HOME/ExpaRNA/bin/ExpaRNA -h
+	# go to build directory
+	- cd $TRAVIS_BUILD_DIR 
+	# generate autotools's files 
+	- bash autotools-init.sh
+	# configure and build 
+	- ./configure --with-RNA=$HOME/vienna --prefix=$HOME/ExpaRNA 
+	- make && make install
+	# call binary
+	- $HOME/ExpaRNA/bin/ExpaRNA -h

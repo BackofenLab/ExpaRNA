@@ -1,6 +1,10 @@
-#
-AC_INIT([ExpaRNA], [1.0], [heyne@informatik.uni-freiburg.de])
-AC_CONFIG_AUX_DIR(config)
+
+AC_PREREQ([2.65])
+# 5 argument version only available with aclocal >= 2.64
+AC_INIT( [ExpaRNA], [1.0.1], [], [expaRNA], [http://www.bioinf.uni-freiburg.de] )
+
+AC_CONFIG_AUX_DIR([.])
+AC_CONFIG_SRCDIR([src/Util_String.cpp])
 
 # store user given flags for possible later resetting
 TMP_CXXFLAGS=$CXXFLAGS
@@ -11,58 +15,60 @@ TMP_CFLAGS=$CFLAGS
 # Checks for programs.
 AC_PROG_CXX
 AC_PROG_CC
+AC_PROG_RANLIB
 
-# enable/disable debugging information if wanted
-AC_ARG_ENABLE(debug-info,
-	AC_HELP_STRING(
-	    [--enable-debug-info],
-	    [enable '-g' compiler flag for debug information build (default=disabled)]
-	),
-	debuginfo="$enableval",
-  	debuginfo=no
-)
 
-# test if debugging information is wanted and handle setting
-AC_MSG_CHECKING(whether to build with debug information (bigger executable))
-AC_MSG_RESULT($debuginfo)
-if test  x"$debuginfo" = x"no"; then
-	# undo '-g -O2' debuggin add of AC_PROG_CXX and AC_PROG_CC macro, if flags are empty
-	#CXXFLAGS="$TMP_CXXFLAGS -std=gnu++0x"
-	#CPPFLAGS="$TMP_CPPFLAGS -std=gnu++0x"
-	#CFLAGS="$TMP_CFLAGS -std=gnu++0x"
-	CXXFLAGS=$TMP_CXXFLAGS
-	CPPFLAGS=$TMP_CPPFLAGS
-	CFLAGS=$TMP_CFLAGS
+# automake initialisation (mandatory) and check for minimal automake API version
+AM_INIT_AUTOMAKE([1.11])
+
+# use the C++ compiler for the following checks
+AC_LANG([C++])
+
+
+DEPENDENCYNOTFOUND=0;
+
+
+###############################################################################
+# DEBUG SUPPORT SETUP
+###############################################################################
+
+AC_MSG_CHECKING([whether to build with debug information])
+debuger=no
+AC_ARG_ENABLE([debug],
+	[AS_HELP_STRING([--enable-debug],
+	    [enable debug data generation (def=no)])],
+  	[debuger="$enableval"])
+AC_MSG_RESULT([$debuger])
+if test x"$debuger" = x"yes"; then
+	AC_DEFINE([_DEBUG], [1], [Run in DEBUG mode with additional assertions and debug output])
+	AM_CXXFLAGS="$AM_CXXFLAGS -g -O0 -Wall -Werror -Wno-uninitialized"
+	AM_CFLAGS="$AM_CFLAGS -g -O0 -Wall -Werror -Wno-uninitialized"
 else
-	CXXFLAGS="$CXXFLAGS -g"
-	CPPFLAGS="$CPPFLAGS -g"
-	CFLAGS="$CFLAGS -g"
+	AC_DEFINE([NDEBUG], [1], [Run in normal mode with minimal assertions])
+	AM_CXXFLAGS="$AM_CXXFLAGS -O3"
+	AM_CFLAGS="$AM_CFLAGS -O3"
 fi
 
-
-AC_PROG_RANLIB
-AM_INIT_AUTOMAKE
-AC_LANG_CPLUSPLUS
 
 ###############################################################################
 # BEGIN STATIC LINKING CHECK
 ###############################################################################
 
-AC_ARG_ENABLE(static-linking,
-    AC_HELP_STRING(
+AC_ARG_ENABLE([static-linking],
+    [AC_HELP_STRING(
     	[--enable-static-linking],
 	    [enables static linking of the executables (default=disabled)]
-	),
+	)],
     [enable_static_linking=$enableval],
     [enable_static_linking=no]
 )
+AC_MSG_CHECKING([whether to link only with static libraries])
+AC_MSG_RESULT([$enable_static_linking])
 
 if test "$enable_static_linking" = "yes"; then
-	LDFLAGS="-static $LDFLAGS"
+	AM_LDFLAGS="-static $AM_LDFLAGS"
 #	LIBS="-lpthread $LIBS"
 fi
-AC_MSG_CHECKING([whether to link only with static libraries])
-AC_MSG_RESULT($enable_static_linking)
 
 ###############################################################################
 # END STATIC LINKING CHECK
@@ -70,103 +76,98 @@ AC_MSG_RESULT($enable_static_linking)
 
 
 ###############################################################################
-# BEGIN PATH-SUPPORT CHECK
+# BEGIN PROFILING CHECK
 ###############################################################################
 
-# Vienna RNA package library path support, if not installed in usual directories
-LIBS="-lRNA $LIBS"
-AC_ARG_WITH(RNA,
-    AC_HELP_STRING(
-        [--with-RNA=prefix],
-        [alternative prefix path to Vienna RNA library]
-      ),
-      RNAPATHSET=1,
-      RNAPATHSET=0
+AC_MSG_CHECKING([whether to build with profiler information])
+profiler=no
+AC_ARG_ENABLE([profiling],
+	[AC_HELP_STRING(
+	    [--enable-profiling],
+	    [enable profiling data generation (default=disabled)]
+	)],
+ 	[profiler="$enableval"]
 )
-if test  $RNAPATHSET = 1 ; then
-        CPPFLAGS="$CPPFLAGS -I$with_RNA/include"
-        CFLAGS="$CFLAGS -I$with_RNA/include"
-        LDFLAGS="-L$with_RNA/lib $LDFLAGS"
+AC_MSG_RESULT([$profiler])
+if test x"$profiler" = x"yes"; then
+	AM_CXXFLAGS="$AM_CXXFLAGS -pg"
+    AM_LDFLAGS="$AM_LDFLAGS -pg"
 fi
 
-# xerces-c Library path support, if not installed in usual directories
-# LIBS="-lxerces-c $LIBS"
-# AC_ARG_WITH(xml,
-#    AC_HELP_STRING(
-#        [--with-xml=prefix],
-#        [alternative prefix path to xerces-c library]
-#      ),
-#      xmlPATHSET=1,
-#      xmlPATHSET=0
-#)		
-#if test  $xmlPATHSET = 1 ; then
-#        CPPFLAGS="$CPPFLAGS -I$with_xml/include"
-#        CFLAGS="$CFLAGS -I$with_xml/include"
-#        LDFLAGS="-L$with_xml/lib $LDFLAGS"
-#fi
-
-# LIBS="-lleda $LIBS"
-
 ###############################################################################
-# END PATH-SUPPORT CHECK
+# Vienna RNA package library path support, if not installed in usual directories
 ###############################################################################
-
-LDFLAGS="$LDFLAGS $LIBS"
-AC_SUBST(GLOBALCPPFLAGS, $CPPFLAGS )
-AC_SUBST(GLOBALLDFLAGS, $LDFLAGS )
-
-#
-# Checks for libraries.
-#
-AC_CHECK_LIB(RNA, [energy_of_struct], [xmlNOTFOUND=0], [ xmlNOTFOUND=1])
+AC_ARG_WITH([RNA],
+	[AC_HELP_STRING(
+	    [--with-RNA=PREFIX],
+	    [alternative prefix path to Vienna RNA library]
+	  )],
+	  [RNAPATHSET=1],
+	  [RNAPATHSET=0]
+)
+if test  $RNAPATHSET = 1 ; then
+	# set compiler and linker flags if needed
+	AM_CXXFLAGS="-I$with_RNA/include $AM_CXXFLAGS -fopenmp"
+	AM_CFLAGS="-I$with_RNA/include $AM_CFLAGS -fopenmp"
+	AM_LDFLAGS="-L$with_RNA/lib $AM_LDFLAGS"
+fi
 
 ###############################################################################
 # BEGIN VIENNA CHECK
 ###############################################################################
-
-
 # check for Vienna RNA headers
-AC_MSG_CHECKING([for the Vienna RNA C header])
+AC_MSG_CHECKING([for the Vienna RNA package 2.* headers])
+OLD_CPPFLAGS=$CPPFLAGS
+OLD_CXXFLAGS=$CXXFLAGS
+OLD_LDFLAGS=$LDFLAGS
+CPPFLAGS="$CPPFLAGS $AM_CXXFLAGS"
+CXXFLAGS="$CXXFLAGS $AM_CXXFLAGS"
+LDFLAGS="$LDFLAGS $AM_LDFLAGS"
 AC_COMPILE_IFELSE(
-     [ #include <ViennaRNA/fold_vars.h> ],
+     [AC_LANG_PROGRAM([[#include <ViennaRNA/model.h>]],[[vrna_md_s tmp;]])],
+     [ 
+		AC_MSG_RESULT([yes])
+#		AC_CHECK_LIB([RNA], [var_time_stamp], [RNANOTFOUND=0], [ RNANOTFOUND=1])
+     ],
      [
-        AC_MSG_RESULT(yes)
-        AC_CHECK_LIB(RNA, [fold], [RNANOTFOUND=0], [ RNANOTFOUND=1])
-         ],
-     [
-       AC_MSG_RESULT(no)
+       AC_MSG_RESULT([no])
+	   AC_MSG_NOTICE([DEBUG : used CXXFLAGS = $CXXFLAGS])
+	   AC_MSG_NOTICE([DEBUG : used CPPFLAGS = $CPPFLAGS])
+	   AC_MSG_NOTICE([DEBUG : used  LDFLAGS = $LDFLAGS])
        RNANOTFOUND=1;
      ]
 )
+CPPFLAGS=$OLD_CPPFLAGS
+CXXFLAGS=$OLD_CXXFLAGS
+LDFLAGS=$OLD_LDFLAGS
+
+# error output if ViennaRNA not found
+if test "$RNANOTFOUND" = "1"; then
+	AC_MSG_NOTICE()
+	AC_MSG_NOTICE([The Vienna RNA C library >= 2.* is required.])
+	AC_MSG_NOTICE([ -> It can be obtained from http://www.tbi.univie.ac.at/.])
+	AC_MSG_NOTICE()
+ 	if test "$RNAPATHSET" = "1"; then
+		AC_MSG_NOTICE([ -> Can't find the Vienna RNA library in given path '$with_RNA'.])
+ 	else
+		AC_MSG_NOTICE([ -> If installed in a non-standard path, please use '--with-RNA=PREFIX'.])
+ 	fi
+ 	DEPENDENCYNOTFOUND=1;
+else
+	# register Vienna RNA lib for linking
+	LIBS="$LIBS -lRNA"
+fi
+
 
 ###############################################################################
 # END VIENNA CHECK
 ###############################################################################
 
-###############################################################################
-# BEGIN xerces-c CHECK
-###############################################################################
 
 
-# check for xerces-c headers
-#AC_MSG_CHECKING([for the xerces-c header])
-#AC_COMPILE_IFELSE(
-#     [ #include <xercesc/util/XercesVersion.hpp> ],
-#     [	
-#        AC_MSG_RESULT(yes)
-#	xmlNOTFOUND=0;
-#        #AC_CHECK_LIB(xerces-c, [XMLPlatformUtils::Initialize], [xmlNOTFOUND=0], [ xmlNOTFOUND=1])
-#         ],
-#     [
-#       AC_MSG_RESULT(no)
-#       xmlNOTFOUND=1;
-#     ]
-#)
-
 ###############################################################################
-# END xerces-c CHECK
+# END PATH-SUPPORT CHECK
 ###############################################################################
-#AX_LIB_XERCES([2.7.0])
 
 # Checks for header files.
 AC_HEADER_STDC
@@ -179,90 +180,27 @@ AC_TYPE_SIZE_T
 #
 
 ###############################################################################
-# BEGIN DEBUG/PROFILING CHECK
+# FINAL DEPENDENCY CHECK AND EXIT IF NEEDED
 ###############################################################################
-AC_MSG_CHECKING(whether to build with debug information)
-debuger=no
-AC_ARG_ENABLE(debug,
-	AC_HELP_STRING(
-	    [--enable-debug],
-	    [enable debug data generation (default=disabled)]
-	),
- 	debuger="$enableval"
-)
-AC_MSG_RESULT($debuger)
-if test x"$debuger" = x"yes"; then
-	AC_DEFINE(DEBUG)
-	CPPFLAGS="$CPPFLAGS -g -Wall -Werror -Wno-uninitialized -O0"
-	LDFLAGS="$LDFLAGS -g -Wall -Werror -Wno-uninitialized -O0"
-else
-	AC_DEFINE(NDEBUG)
-	CPPFLAGS="$CPPFLAGS -O2"
-	# add -std=gnu++0x for new standard, unorderd_map instead of ext/hash_map
-fi
-
-AC_MSG_CHECKING(whether to build with profiler information)
-profiler=no
-AC_ARG_ENABLE(profiling,
-	AC_HELP_STRING(
-	    [--enable-profiling],
-	    [enable profiling data generation (default=disabled)]
-	),
- 	profiler="$enableval"
-)
-AC_MSG_RESULT($profiler)
-if test x"$profiler" = x"yes"; then
-	CPPFLAGS="$CPPFLAGS -pg"
-    LDFLAGS="$LDFLAGS -pg"
-fi
-
-###############################################################################
-# END DEBUG/PROFILING CHECK
-###############################################################################
-
-
-###############################################################################
-# BEGIN DO NOT COMPILE CHECKS
-###############################################################################
-
-DEPENDENCYNOTFOUND=0;
-
-# error output if ViennaRNA not found
-if test "$RNANOTFOUND" = "1"; then
-    AC_MSG_NOTICE()
-    AC_MSG_NOTICE(the Vienna RNA C library is required for building.)
-    AC_MSG_NOTICE(it can be obtained from http://www.tbi.univie.ac.at/~ivo/RNA/.)
-    AC_MSG_NOTICE()
-     if test "$RNAPATHSET" = "1"; then
-        AC_MSG_NOTICE(cant find Vienna RNA library in given path '$with_RNA'.)
-     else
-        AC_MSG_NOTICE(if Vienna RNA is installed elsewhere use --with-RNA=prefix.)
-     fi
-     DEPENDENCYNOTFOUND=1;
-fi
-
-
-# error output if xerces-c not found
-#if test "$HAVE_XERCES" = "0"; then
-#    AC_MSG_NOTICE()
-#    AC_MSG_NOTICE(the xerces-c library is required for building.)
-#    AC_MSG_NOTICE(cant find xerces-c library in given path '$with_xerces'.)
-#    DEPENDENCYNOTFOUND=1;
-#fi
-
 
 # error ABORT if on of the libraries was not found
 if test "$DEPENDENCYNOTFOUND" = "1"; then
-    AC_MSG_NOTICE()
-    AC_MSG_ERROR(library not found! Try './configure --help'.)
+	AC_MSG_NOTICE()
+	AC_MSG_ERROR([Some dependency was not met! See above for errors and relate to './configure --help'.])
 fi
 
-###############################################################################
-# END DO NOT COMPILE CHECKS
-###############################################################################
+##########################################################################
 
+# distribute additional compiler and linker flags
+# --> set these variables instead of CXXFLAGS or LDFLAGS
+AC_SUBST([AM_CFLAGS])
+AC_SUBST([AM_CXXFLAGS])
+AC_SUBST([AM_LDFLAGS])
+AC_SUBST([LIBS])
 
-AC_CONFIG_FILES([ Makefile  src/Makefile ])
-#
-#
+# setup files to create
+AC_CONFIG_FILES([Makefile])
+AC_CONFIG_FILES([src/Makefile])
+
+# create files
 AC_OUTPUT

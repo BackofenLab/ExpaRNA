@@ -1,1 +1,4 @@
-Nothing to change yet.
+
+2016-11-01 :
+ + autotools-init.sh : runs the initial autotools pipeline to generate the
+   configure script etc.
