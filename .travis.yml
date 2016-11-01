@@ -1,11 +1,15 @@
-sudo: false
 language: cpp
 
-os:
-  - linux
+cache:
+  apt: true
 
-compiler:
-  - gcc
+addons:
+  apt:
+    sources:
+    - ubuntu-toolchain-r-test
+
+os:
+    - linux
 
 before_install:
     - wget http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh
