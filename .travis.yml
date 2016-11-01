@@ -21,12 +21,12 @@ before_install:
     - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$CONDA_LIB_PATH
   
 script:
-	# go to build directory
-	- cd $TRAVIS_BUILD_DIR 
-	# generate autotools's files 
-	- bash autotools-init.sh
-	# configure and build 
-	- ./configure --with-RNA=$HOME/vienna --prefix=$HOME/ExpaRNA 
-	- make && make install
-	# call binary
-	- $HOME/ExpaRNA/bin/ExpaRNA -h
+    # go to build directory
+    - cd $TRAVIS_BUILD_DIR 
+    # generate autotools's files 
+    - bash autotools-init.sh
+    # configure and build 
+    - ./configure --with-RNA=$HOME/vienna --prefix=$HOME/ExpaRNA 
+    - make && make install
+    # call binary
+    - $HOME/ExpaRNA/bin/ExpaRNA -h
