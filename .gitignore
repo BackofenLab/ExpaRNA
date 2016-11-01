@@ -26,3 +26,16 @@
 *.exe
 *.out
 *.app
+/.cproject
+/.project
+/autom4te.cache
+/aclocal.m4
+/compile
+/configure
+/depcomp
+/install-sh
+/Makefile.in
+/missing
+/config.log
+/config.status
+/Makefile
