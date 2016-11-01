@@ -32,6 +32,11 @@ quality and speed. However, we get a speedup of 4.25 even in the highest quality
 setting, where the quality of the produced alignment is comparable to that of 
 LocARNA alone. 
 
+## Dependencies
+
+- GNU getopt
+- Vienna RNA package (developed with v1.8.5)
+
 
 ## Contribution
 

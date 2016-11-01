@@ -41,12 +41,12 @@ AC_ARG_ENABLE([debug],
 AC_MSG_RESULT([$debuger])
 if test x"$debuger" = x"yes"; then
 	AC_DEFINE([_DEBUG], [1], [Run in DEBUG mode with additional assertions and debug output])
-	AM_CXXFLAGS="$AM_CXXFLAGS -g -O0 -Wall -Werror -Wno-uninitialized"
-	AM_CFLAGS="$AM_CFLAGS -g -O0 -Wall -Werror -Wno-uninitialized"
+	AM_CXXFLAGS="$AM_CXXFLAGS -g -O0 -Wall -Werror -Wno-uninitialized -Wno-deprecated"
+	AM_CFLAGS="$AM_CFLAGS -g -O0 -Wall -Werror -Wno-uninitialized -Wno-deprecated"
 else
 	AC_DEFINE([NDEBUG], [1], [Run in normal mode with minimal assertions])
-	AM_CXXFLAGS="$AM_CXXFLAGS -O3"
-	AM_CFLAGS="$AM_CFLAGS -O3"
+	AM_CXXFLAGS="$AM_CXXFLAGS -O3 -Wno-deprecated"
+	AM_CFLAGS="$AM_CFLAGS -O3 -Wno-deprecated"
 fi
 
 
@@ -116,7 +116,7 @@ fi
 # BEGIN VIENNA CHECK
 ###############################################################################
 # check for Vienna RNA headers
-AC_MSG_CHECKING([for the Vienna RNA package 2.* headers])
+AC_MSG_CHECKING([for the Vienna RNA package headers])
 OLD_CPPFLAGS=$CPPFLAGS
 OLD_CXXFLAGS=$CXXFLAGS
 OLD_LDFLAGS=$LDFLAGS
@@ -124,7 +124,7 @@ CPPFLAGS="$CPPFLAGS $AM_CXXFLAGS"
 CXXFLAGS="$CXXFLAGS $AM_CXXFLAGS"
 LDFLAGS="$LDFLAGS $AM_LDFLAGS"
 AC_COMPILE_IFELSE(
-     [AC_LANG_PROGRAM([[#include <ViennaRNA/model.h>]],[[vrna_md_s tmp;]])],
+     [AC_LANG_PROGRAM([[#include <ViennaRNA/fold_vars.h>]],[[int var = noGU;]])],
      [ 
 		AC_MSG_RESULT([yes])
 #		AC_CHECK_LIB([RNA], [var_time_stamp], [RNANOTFOUND=0], [ RNANOTFOUND=1])
@@ -144,7 +144,7 @@ LDFLAGS=$OLD_LDFLAGS
 # error output if ViennaRNA not found
 if test "$RNANOTFOUND" = "1"; then
 	AC_MSG_NOTICE()
-	AC_MSG_NOTICE([The Vienna RNA C library >= 2.* is required.])
+	AC_MSG_NOTICE([The Vienna RNA C library is required.])
 	AC_MSG_NOTICE([ -> It can be obtained from http://www.tbi.univie.ac.at/.])
 	AC_MSG_NOTICE()
  	if test "$RNAPATHSET" = "1"; then

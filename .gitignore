@@ -27,6 +27,7 @@
 *.out
 *.app
 /.cproject
+/.project
 /autom4te.cache
 /aclocal.m4
 /compile
@@ -35,3 +36,6 @@
 /install-sh
 /Makefile.in
 /missing
+/config.log
+/config.status
+/Makefile
