@@ -30,7 +30,7 @@ script:
     # generate autotools's files 
     - bash autotools-init.sh
     # configure and build 
-    - ./configure --with-RNA=$HOME/vienna --prefix=$HOME/ExpaRNA 
+    - ./configure --with-RNA=$CONDA_PATH --prefix=$HOME/ExpaRNA 
     - make && make install
     # call binary
     - $HOME/ExpaRNA/bin/ExpaRNA -h
