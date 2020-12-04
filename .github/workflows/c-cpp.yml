@@ -1,0 +1,35 @@
+name: C/C++ CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - uses: s-weigand/setup-conda@v1
+      with:
+        activate-conda: true
+    - name: Create conda environement
+      run: |
+        source `conda info --base`/etc/profile.d/conda.sh
+        conda create -q -n build-ExpaRNA -c conda-forge -c bioconda viennarna
+        conda activate build-ExpaRNA
+    - name: Run script, Test, and Check Output
+      run: |
+        # generate autotools's files 
+        bash autotools-init.sh
+        # run configure and build 
+        ./configure --prefix=$HOME/ExpaRNA --with-RNA=`conda info --base`/envs/build-ExpaRNA
+        make && make install
+        # call binary
+        $HOME/ExpaRNA/bin/ExpaRNA -h &&
+        $HOME/ExpaRNA/bin/ExpaRNA -v -e -a -i -o -s2 Examples/16SrRNA_Ecoli_Ddiscoid.fa &&
+        [ `wc -l ExpaRNA-results/LCSEPM.epm | cut -d' ' -f 1` = 330 ] &&
+        grep "pat_1 AA .. 1:2 1:2 2" ExpaRNA-results/LCSEPM.epm
